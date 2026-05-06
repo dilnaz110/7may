@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔐 СЕКРЕТНАЯ МИССИЯ — 7 МАЯ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+
+:root {
+--green: #00ff41;
+--green-dim: #00cc33;
+--green-glow: rgba(0,255,65,0.4);
+--green-faint: rgba(0,255,65,0.08);
+--bg: #020a04;
+--dark: #010701;
+}
+
+- { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+height: 100%;
+background: var(--bg);
+color: var(--green);
+font-family: ‘Share Tech Mono’, monospace;
+overflow: hidden;
+}
+
+/* Scanline overlay */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background: repeating-linear-gradient(
+0deg,
+transparent,
+transparent 2px,
+rgba(0,0,0,0.15) 2px,
+rgba(0,0,0,0.15) 4px
+);
+pointer-events: none;
+z-index: 9999;
+}
+
+/* Grid background */
+body::after {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image:
+linear-gradient(rgba(0,255,65,0.04) 1px, transparent 1px),
+linear-gradient(90deg, rgba(0,255,65,0.04) 1px, transparent 1px);
+background-size: 40px 40px;
+pointer-events: none;
+z-index: 0;
+}
+
+/* Corner decorations */
+.corner {
+position: fixed;
+width: 60px;
+height: 60px;
+pointer-events: none;
+z-index: 100;
+}
+.corner-tl { top: 12px; left: 12px; border-top: 2px solid var(--green); border-left: 2px solid var(--green); }
+.corner-tr { top: 12px; right: 12px; border-top: 2px solid var(--green); border-right: 2px solid var(--green); }
+.corner-bl { bottom: 12px; left: 12px; border-bottom: 2px solid var(--green); border-left: 2px solid var(--green); }
+.corner-br { bottom: 12px; right: 12px; border-bottom: 2px solid var(--green); border-right: 2px solid var(--green); }
+
+/* Status bar */
+.status-bar {
+position: fixed;
+top: 0; left: 0; right: 0;
+height: 28px;
+background: rgba(0,255,65,0.06);
+border-bottom: 1px solid rgba(0,255,65,0.2);
+display: flex;
+align-items: center;
+padding: 0 16px;
+font-size: 10px;
+letter-spacing: 2px;
+color: var(--green-dim);
+z-index: 200;
+gap: 20px;
+}
+.status-dot {
+width: 6px; height: 6px;
+border-radius: 50%;
+background: var(--green);
+box-shadow: 0 0 8px var(--green);
+animation: blink 1.2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* Main container */
+#app {
+position: fixed;
+inset: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 10;
+padding: 40px 20px;
+}
+
+/* Screens */
+.screen {
+display: none;
+flex-direction: column;
+align-items: center;
+text-align: center;
+max-width: 600px;
+width: 100%;
+gap: 24px;
+animation: screenIn 0.5s ease forwards;
+}
+.screen.active { display: flex; }
+@keyframes screenIn {
+from { opacity: 0; transform: translateY(20px); }
+to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Panel */
+.panel {
+background: var(--green-faint);
+border: 1px solid rgba(0,255,65,0.25);
+border-radius: 4px;
+padding: 32px 28px;
+width: 100%;
+position: relative;
+box-shadow: 0 0 40px rgba(0,255,65,0.06), inset 0 0 40px rgba(0,255,65,0.02);
+}
+.panel::before {
+content: attr(data-label);
+position: absolute;
+top: -9px; left: 20px;
+background: var(--bg);
+padding: 0 8px;
+font-size: 10px;
+letter-spacing: 3px;
+color: var(--green-dim);
+}
+
+/* Typography */
+.code-prefix {
+font-size: 11px;
+color: var(--green-dim);
+letter-spacing: 3px;
+margin-bottom: 4px;
+}
+h1 {
+font-family: ‘VT323’, monospace;
+font-size: clamp(28px, 7vw, 52px);
+line-height: 1.1;
+text-shadow: 0 0 20px var(--green-glow), 0 0 40px rgba(0,255,65,0.2);
+letter-spacing: 2px;
+}
+h2 {
+font-family: ‘VT323’, monospace;
+font-size: clamp(22px, 5vw, 38px);
+text-shadow: 0 0 15px var(--green-glow);
+letter-spacing: 1px;
+}
+p {
+font-size: clamp(12px, 3vw, 15px);
+line-height: 1.8;
+color: rgba(0,255,65,0.8);
+letter-spacing: 1px;
+}
+
+/* Data rows */
+.data-row {
+display: flex;
+align-items: center;
+gap: 12px;
+font-size: 13px;
+color: rgba(0,255,65,0.7);
+letter-spacing: 2px;
+}
+.data-row::before { content: ‘›’; color: var(–green); }
+
+/* Divider */
+.divider {
+width: 100%;
+height: 1px;
+background: linear-gradient(90deg, transparent, rgba(0,255,65,0.4), transparent);
+}
+
+/* Buttons */
+.btn {
+font-family: ‘Share Tech Mono’, monospace;
+font-size: clamp(12px, 3vw, 14px);
+letter-spacing: 3px;
+text-transform: uppercase;
+color: var(--bg);
+background: var(--green);
+border: none;
+padding: 14px 32px;
+cursor: pointer;
+position: relative;
+clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+transition: all 0.2s;
+box-shadow: 0 0 20px var(--green-glow);
+}
+.btn:hover {
+background: #fff;
+box-shadow: 0 0 40px var(--green), 0 0 80px rgba(0,255,65,0.3);
+transform: scale(1.04);
+}
+.btn:active { transform: scale(0.97); }
+
+.btn-outline {
+background: transparent;
+color: var(--green);
+border: 1px solid rgba(0,255,65,0.5);
+clip-path: none;
+padding: 12px 28px;
+box-shadow: none;
+font-size: clamp(11px, 2.5vw, 13px);
+letter-spacing: 2px;
+}
+.btn-outline:hover {
+background: var(--green-faint);
+border-color: var(--green);
+box-shadow: 0 0 20px var(--green-glow);
+color: var(--green);
+transform: scale(1.03);
+}
+
+/* Answer buttons grid */
+.answers-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 12px;
+width: 100%;
+}
+.ans-btn {
+font-family: ‘Share Tech Mono’, monospace;
+font-size: clamp(12px, 3vw, 14px);
+letter-spacing: 2px;
+color: var(--green);
+background: transparent;
+border: 1px solid rgba(0,255,65,0.3);
+padding: 16px 12px;
+cursor: pointer;
+transition: all 0.2s;
+position: relative;
+overflow: hidden;
+}
+.ans-btn::before {
+content: ‘’;
+position: absolute;
+inset: 0;
+background: var(--green);
+transform: scaleX(0);
+transform-origin: left;
+transition: transform 0.3s ease;
+}
+.ans-btn span { position: relative; z-index: 1; }
+.ans-btn:hover::before { transform: scaleX(1); }
+.ans-btn:hover { color: var(--bg); border-color: var(--green); box-shadow: 0 0 20px var(--green-glow); }
+.ans-btn:active { transform: scale(0.97); }
+
+/* Progress bar */
+.progress-track {
+width: 100%;
+height: 3px;
+background: rgba(0,255,65,0.15);
+border-radius: 2px;
+overflow: hidden;
+}
+.progress-fill {
+height: 100%;
+background: var(--green);
+box-shadow: 0 0 8px var(--green);
+transition: width 0.5s ease;
+}
+
+/* Question counter */
+.q-counter {
+font-size: 11px;
+letter-spacing: 3px;
+color: var(--green-dim);
+}
+
+/* Analysis lines */
+.analysis-line {
+font-size: 13px;
+letter-spacing: 2px;
+opacity: 0;
+transform: translateX(-10px);
+transition: all 0.4s ease;
+}
+.analysis-line.show { opacity: 1; transform: translateX(0); }
+.analysis-line.error { color: #ff4444; text-shadow: 0 0 10px rgba(255,68,68,0.5); }
+.analysis-line.success { color: var(--green); text-shadow: 0 0 15px var(--green-glow); font-size: 18px; }
+
+/* Final text */
+.final-text {
+font-size: clamp(13px, 3vw, 15px);
+line-height: 2;
+text-align: left;
+color: rgba(0,255,65,0.9);
+letter-spacing: 1px;
+}
+.final-text .highlight {
+color: var(--green);
+text-shadow: 0 0 15px var(--green-glow);
+font-size: 1.1em;
+}
+
+/* Glitch animation */
+@keyframes glitch {
+0%,100% { text-shadow: 0 0 20px var(--green-glow); transform: none; }
+20% { text-shadow: -2px 0 #ff0044, 2px 0 #00ffff; transform: skew(-1deg); }
+40% { text-shadow: 2px 0 #ff0044, -2px 0 #00ffff; transform: skew(1deg); }
+60% { text-shadow: 0 0 20px var(--green-glow); transform: none; }
+}
+.glitch { animation: glitch 2s ease-in-out 3; }
+
+/* Pulse for main button */
+@keyframes pulse-border {
+0%,100% { box-shadow: 0 0 20px var(--green-glow); }
+50% { box-shadow: 0 0 50px var(--green), 0 0 100px rgba(0,255,65,0.3); }
+}
+.pulse { animation: pulse-border 1.5s ease-in-out infinite; }
+
+/* Typewriter cursor */
+.cursor::after {
+content: ‘█’;
+animation: blink 0.8s step-end infinite;
+margin-left: 2px;
+font-size: 0.8em;
+}
+
+/* Music btn */
+.music-btn {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+font-family: ‘Share Tech Mono’, monospace;
+font-size: 11px;
+letter-spacing: 2px;
+color: rgba(0,255,65,0.5);
+text-decoration: none;
+border: 1px solid rgba(0,255,65,0.2);
+padding: 8px 16px;
+transition: all 0.2s;
+cursor: pointer;
+}
+.music-btn:hover { color: var(--green); border-color: var(--green); box-shadow: 0 0 15px var(--green-glow); }
+
+/* Scroll for final */
+#screen-final .panel {
+max-height: 70vh;
+overflow-y: auto;
+scrollbar-width: thin;
+scrollbar-color: var(--green) transparent;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+.answers-grid { grid-template-columns: 1fr; }
+.panel { padding: 24px 18px; }
+.btn { padding: 12px 24px; }
+}
+</style>
+
+</head>
+<body>
+
+<!-- Corner decorations -->
+
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<!-- Status bar -->
+
+<div class="status-bar">
+  <div class="status-dot"></div>
+  <span>SECURE_CHANNEL_ACTIVE</span>
+  <span style="margin-left:auto">07.05 // MISSION_ID: FAM-001</span>
+</div>
+
+<div id="app">
+
+  <!-- SCREEN 1: Intro -->
+
+  <div class="screen active" id="screen-intro">
+    <div class="code-prefix">> INITIALIZING SYSTEM...</div>
+    <div class="panel" data-label="MISSION_BRIEF">
+      <div style="display:flex;flex-direction:column;gap:20px;align-items:center">
+        <h1>🔐 СЕКРЕТНАЯ<br>МИССИЯ<br>АКТИВИРОВАНА</h1>
+        <div class="divider"></div>
+        <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+          <div class="data-row">ОБНАРУЖЕН ЭЛИТНЫЙ ОТРЯД</div>
+          <div class="data-row">СТАТУС: ДЕЙСТВУЮЩИЙ</div>
+          <div class="data-row">КОМАНДИР: <span style="color:var(--green);text-shadow:0 0 10px var(--green-glow)">ПАПА</span></div>
+          <div class="data-row">ЛИЧНЫЙ СОСТАВ: 4 БОЙЦА</div>
+        </div>
+        <div class="divider"></div>
+        <p>Требуется верификация отряда.<br>Пройдите идентификацию.</p>
+      </div>
+    </div>
+    <button class="btn pulse" onclick="startMission()">▶ НАЧАТЬ МИССИЮ</button>
+  </div>
+
+  <!-- SCREEN 2: Questions -->
+
+  <div class="screen" id="screen-questions">
+    <div class="q-counter" id="q-counter">ВОПРОС 1 / 4</div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="panel" data-label="ИДЕНТИФИКАЦИЯ">
+      <div style="display:flex;flex-direction:column;gap:20px;align-items:center">
+        <div class="code-prefix" id="q-prefix">> ЗАПРОС_01</div>
+        <h2 id="question-text">Кто самый сильный?</h2>
+        <div class="divider"></div>
+        <div class="answers-grid" id="answers-grid"></div>
+      </div>
+    </div>
+    <div class="code-prefix" id="q-hint" style="font-size:10px;opacity:0.5">ВЫБЕРИТЕ ПРАВИЛЬНЫЙ ОТВЕТ ↑</div>
+  </div>
+
+  <!-- SCREEN 3: Analysis -->
+
+  <div class="screen" id="screen-analysis">
+    <div class="panel" data-label="ОБРАБОТКА_ДАННЫХ">
+      <div style="display:flex;flex-direction:column;gap:16px;align-items:flex-start;width:100%">
+        <div class="analysis-line" id="al1">> Сверка базы данных...</div>
+        <div class="analysis-line" id="al2">> Анализ ответов: [████████████] 100%</div>
+        <div class="analysis-line" id="al3">> Перекрёстная проверка...</div>
+        <div class="divider"></div>
+        <div class="analysis-line error" id="al4">⚠️ ОШИБКА СИСТЕМЫ...</div>
+        <div class="analysis-line error" id="al5">💥 КРИТИЧЕСКИЙ СБОЙ...</div>
+        <div class="divider"></div>
+        <div class="analysis-line success" id="al6">✅ ВСЕ ОТВЕТЫ ПРАВИЛЬНЫЕ 😎</div>
+        <div class="analysis-line" id="al7" style="color:rgba(0,255,65,0.6);font-size:12px">> Потому что все вы — лучшие.</div>
+      </div>
+    </div>
+    <button class="btn" id="analysis-btn" style="display:none" onclick="goToMainQ()">ПРОДОЛЖИТЬ МИССИЮ ▶</button>
+  </div>
+
+  <!-- SCREEN 4: Main question -->
+
+  <div class="screen" id="screen-main-q">
+    <div class="panel" data-label="ФИНАЛЬНЫЙ_ЗАПРОС">
+      <div style="display:flex;flex-direction:column;gap:24px;align-items:center">
+        <div class="code-prefix">> ГЛАВНЫЙ ВОПРОС МИССИИ</div>
+        <h2 class="cursor">Кто стоит за<br>этой командой?</h2>
+        <div class="divider"></div>
+        <p>Без этого человека не было бы<br>ни миссии, ни команды.</p>
+        <button class="btn pulse" onclick="confirmDad()">ПАПА ❤️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: Confirmation -->
+
+  <div class="screen" id="screen-confirm">
+    <div class="panel" data-label="ПОДТВЕРЖДЕНИЕ">
+      <div style="display:flex;flex-direction:column;gap:20px;align-items:center">
+        <h1 class="glitch">💥 ОТВЕТ<br>ПОДТВЕРЖДЁН</h1>
+        <div class="divider"></div>
+        <div style="display:flex;flex-direction:column;gap:10px;width:100%">
+          <div class="data-row">КОМАНДИР ИДЕНТИФИЦИРОВАН</div>
+          <div class="data-row">ОТРЯД: ДЕЙСТВУЮЩИЙ</div>
+          <div class="data-row">СТАТУС СЕМЬИ: <span style="color:var(--green);text-shadow:0 0 10px var(--green-glow)">НЕПОБЕДИМА</span></div>
+        </div>
+        <div class="divider"></div>
+        <h2>СЕМЬЯ —<br>САМАЯ СИЛЬНАЯ КОМАНДА</h2>
+      </div>
+    </div>
+    <button class="btn" onclick="goToFinal()">▶ ОТКРЫТЬ ПОСЛАНИЕ</button>
+  </div>
+
+  <!-- SCREEN 6: Final -->
+
+  <div class="screen" id="screen-final">
+    <div class="panel" data-label="ЛИЧНОЕ_ПОСЛАНИЕ">
+      <div style="display:flex;flex-direction:column;gap:20px;align-items:center">
+        <h2 style="font-size:clamp(20px,5vw,32px)">🎉 С 7 МАЯ,<br>МОИ РОДНЫЕ ❤️</h2>
+        <div class="divider"></div>
+        <div class="final-text">
+          <p style="margin-bottom:16px">
+            <span class="highlight">Папа</span> — наша опора и сила.<br>
+            А вы — моя защита, моя гордость<br>и моя поддержка.
+          </p>
+          <div class="divider" style="margin:16px 0"></div>
+          <p style="margin-bottom:16px">
+            Вы — не просто семья.<br>
+            Вы — <span class="highlight">команда</span>, в которой<br>
+            я чувствую себя в безопасности.
+          </p>
+          <div class="divider" style="margin:16px 0"></div>
+          <p>
+            Спасибо, что вы у меня есть.<br>
+            <span class="highlight">Я вас очень люблю 🤍</span>
+          </p>
+        </div>
+        <div class="divider"></div>
+        <div style="display:flex;flex-direction:column;gap:10px;align-items:center;width:100%">
+          <div class="data-row" style="font-size:11px">ПАПА // ДОСХАН // ИЛЬЯС // НАРИМАН // УЛАН</div>
+        </div>
+      </div>
+    </div>
+    <a href="https://youtu.be/UlwcmzXBGec?si=yqWzpRAPhBrhBnNO">
+      🎵 ВКЛЮЧИТЬ САУНДТРЕК МИССИИ
+    </a>
+    <button class="btn-outline btn" onclick="restart()" style="font-size:11px;padding:10px 20px">↺ НАЧАТЬ ЗАНОВО</button>
+  </div>
+
+</div>
+
+<script>
+  const questions = [
+    { prefix: '> ЗАПРОС_01', text: 'Кто самый сильный?' },
+    { prefix: '> ЗАПРОС_02', text: 'Кто самый заботливый?' },
+    { prefix: '> ЗАПРОС_03', text: 'Кто всегда поднимает настроение?' },
+    { prefix: '> ЗАПРОС_04', text: 'Кто будущий герой?' }
+  ];
+  const members = ['ДОСХАН', 'ИЛЬЯС', 'НАРИМАН', 'УЛАН'];
+  let currentQ = 0;
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const el = document.getElementById(id);
+    el.classList.add('active');
+  }
+
+  function startMission() {
+    currentQ = 0;
+    showScreen('screen-questions');
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    const q = questions[currentQ];
+    document.getElementById('q-counter').textContent = `ВОПРОС ${currentQ + 1} / ${questions.length}`;
+    document.getElementById('progress-fill').style.width = `${(currentQ / questions.length) * 100}%`;
+    document.getElementById('q-prefix').textContent = q.prefix;
+    document.getElementById('question-text').textContent = q.text;
+
+    const grid = document.getElementById('answers-grid');
+    grid.innerHTML = '';
+    // Shuffle members for variety
+    const shuffled = [...members].sort(() => Math.random() - 0.5);
+    shuffled.forEach(name => {
+      const btn = document.createElement('button');
+      btn.className = 'ans-btn';
+      btn.innerHTML = `<span>${name}</span>`;
+      btn.onclick = () => answerQuestion(btn);
+      grid.appendChild(btn);
+    });
+  }
+
+  function answerQuestion(btn) {
+    btn.style.background = 'var(--green)';
+    btn.style.color = 'var(--bg)';
+    btn.style.boxShadow = '0 0 20px var(--green-glow)';
+    document.querySelectorAll('.ans-btn').forEach(b => b.disabled = true);
+
+    setTimeout(() => {
+      currentQ++;
+      if (currentQ < questions.length) {
+        document.getElementById('progress-fill').style.width = `${(currentQ / questions.length) * 100}%`;
+        loadQuestion();
+      } else {
+        document.getElementById('progress-fill').style.width = '100%';
+        setTimeout(() => showAnalysis(), 300);
+      }
+    }, 500);
+  }
+
+  function showAnalysis() {
+    showScreen('screen-analysis');
+    const lines = ['al1','al2','al3','al4','al5','al6','al7'];
+    const delays = [200, 700, 1200, 2000, 2600, 3400, 4000];
+    lines.forEach((id, i) => {
+      setTimeout(() => {
+        document.getElementById(id).classList.add('show');
+        if (id === 'al6') {
+          setTimeout(() => {
+            document.getElementById('analysis-btn').style.display = 'inline-block';
+          }, 600);
+        }
+      }, delays[i]);
+    });
+  }
+
+  function goToMainQ() {
+    showScreen('screen-main-q');
+  }
+
+  function confirmDad() {
+    showScreen('screen-confirm');
+  }
+
+  function goToFinal() {
+    showScreen('screen-final');
+  }
+
+  function restart() {
+    // Reset analysis
+    document.querySelectorAll('.analysis-line').forEach(el => el.classList.remove('show'));
+    document.getElementById('analysis-btn').style.display = 'none';
+    showScreen('screen-intro');
+  }
+</script>
+
+</body>
+</html>
